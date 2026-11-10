@@ -52,7 +52,7 @@ This is mathematical notation inside Markdown, rather than complete `.tex` docum
 Install Java 21 and Node 24. Check out the Site repository at the exact toolchain commit pinned in `.github/workflows/docs.yml`, alongside Relay. From Relay:
 
 ```sh
-./gradlew generatePustkaDocs -PpustkaDocsToolchain=/absolute/path/to/Site
+bash ./gradlew generatePustkaDocs -PpustkaDocsToolchain=/absolute/path/to/Site
 ```
 
 On Windows use `gradlew.bat`. The task uses the proxy's real Gradle source set and compilation classpath. It compiles the documentation adapter for Java 21 and writes `build/pustka-docs/api.json`; it does not change either module's Java runtime target.
