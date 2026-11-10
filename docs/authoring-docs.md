@@ -79,3 +79,19 @@ After a push to this repository's `main` branch, the workflow publishes the deve
 Before enabling publication, the site operator registers Relay's repository and a random project key in the Docker server's `DOCS_PUBLISH_KEYS` configuration, then sets the same key as this repository's Actions secret `PUSTKA_DOCS_PUBLISH_KEY`. Use at least 32 random characters. The key belongs only in those two settings, never this repository, an artifact or browser code. The signed publisher sends to `https://pustka.sh/api/site/docs/publish` over HTTPS. A failed upload leaves the website's last good documentation intact.
 
 The workflow pins the Site toolchain and all actions to full commit hashes. Update and review that pin deliberately when adopting a new adapter or package format. Java extraction lives in Site's `tools/javadoc`; future project adapters can emit the same documentation model without changing this reader.
+
+## Documentation checks
+
+The workflow compiles the complete [Java examples](java-examples.md) against the proxy's real classpath. Their source files live in `docs/examples/java`; the `checks.examples` entries in `pustka.docs.json` identify the published guide and heading for each complete Java block. The checker requires those blocks to match their checked source exactly. Update both together when an API changes.
+
+Run the compilation locally with `bash ./gradlew checkPustkaExamples`, or `gradlew.bat checkPustkaExamples` on Windows. After packaging from the pinned Site checkout, run:
+
+```sh
+node scripts/check-docs.mjs \
+  --root /absolute/path/to/Relay \
+  --package /absolute/path/to/Relay/build/pustka-docs/package.json \
+  --manifest /absolute/path/to/Relay/pustka.docs.json \
+  --report /absolute/path/to/Relay/build/pustka-docs/quality.json
+```
+
+Broken local links and Markdown heading anchors, missing API source files/lines, unresolved exported-symbol links, and drifted checked examples fail the documentation job. External HTTP(S) links are syntax-checked but not fetched. Missing authored API descriptions and parameter descriptions appear in the `relay-documentation-quality` artifact as a contributor report; they do not make all existing implementation APIs fail the build. Each missing description includes the symbol ID and exact source location so contributors can improve the relevant comment.
