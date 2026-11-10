@@ -156,4 +156,26 @@ jobs:
         env:
           PUSTKA_DOCS_PUBLISH_KEY: ${{ secrets.PUSTKA_DOCS_PUBLISH_KEY }}
           PUSTKA_DOCS_PUBLISH_URL: ${{ vars.PUSTKA_DOCS_PUBLISH_URL || 'https://pustka.sh/api/site/docs/publish' }}
-        run: node site-toolchain/scripts/publish-docs.mjs --file documentation/package.json
+        run: |
+          node --input-type=module <<'NODE'
+          import {publishDocumentation} from './site-toolchain/scripts/publish-docs.mjs';
+          const fetcher=async(...args)=>{
+            const response=await fetch(...args);
+            if(!response.ok){
+              const type=(response.headers.get('content-type')||'').split(';',1)[0].trim().toLowerCase();
+              const contentType=type==='application/json'||/^application\/[a-z0-9.+-]+\+json$/.test(type)?'json':type==='text/html'||type==='application/xhtml+xml'?'html':'other';
+              const metadata={status:response.status,contentType,cloudflareChallenge:response.headers.get('cf-mitigated')==='challenge'};
+              const ray=response.headers.get('cf-ray');
+              if(/^[a-f0-9]{16}-[A-Z]{3}$/.test(ray||''))metadata.cfRay=ray;
+              console.error('Documentation publication response metadata: '+JSON.stringify(metadata));
+            }
+            return response;
+          };
+          try{
+            const result=await publishDocumentation({file:'documentation/package.json',key:process.env.PUSTKA_DOCS_PUBLISH_KEY,url:process.env.PUSTKA_DOCS_PUBLISH_URL||undefined,fetcher});
+            console.log(`Published ${result.project} documentation.`);
+          }catch(error){
+            console.error(error instanceof TypeError?'Documentation publication could not reach the configured endpoint.':error.message);
+            process.exitCode=1;
+          }
+          NODE
