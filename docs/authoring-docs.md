@@ -72,7 +72,7 @@ For a release, use the exact tag as `--version` (for example `v0.2.0`) and `refs
 
 ## Automatic publication
 
-Pull requests generate and validate the package and attach it as the `relay-documentation` workflow artifact. They do not receive publication secrets or publish to the website. Their package uses `main` metadata with the actual checked-out PR commit and is for review only.
+Pull requests generate and validate the package and attach it as the `relay-documentation` workflow artifact. They also generate `relay-documentation-preview`, a self-contained rendered HTML draft with guides, API navigation, styles and math fonts. The workflow job summary links to its download: extract it and open `index.html` locally to review the exact source revision. The preview manifest records the package SHA-256. These drafts do not receive publication secrets or publish to the website. Their package uses `main` metadata with the actual checked-out PR commit and is for review only.
 
 After a push to this repository's `main` branch, the workflow publishes the development snapshot. You can also run the Documentation workflow manually on `main` to publish the initial snapshot. Manual runs on other branches only generate review artifacts. Semantic version tags such as `v0.2.0` or `v0.2.0-rc.1` publish an immutable release; other tag formats fail package validation. Publication runs in a separate job that does not check out or execute Relay's code. The `main` snapshot can change, while previously published release versions stay available.
 
@@ -82,7 +82,7 @@ The workflow pins the Site toolchain and all actions to full commit hashes. Upda
 
 ## Documentation checks
 
-The workflow compiles the complete [Java examples](java-examples.md) against the proxy's real classpath. Their source files live in `docs/examples/java`; the `checks.examples` entries in `pustka.docs.json` identify the published guide and heading for each complete Java block. The checker requires those blocks to match their checked source exactly. Update both together when an API changes.
+The workflow compiles the complete [Java examples](java-examples.md) and [integration cookbook](integration-cookbook.md) against the relevant real classpaths. Proxy examples live in `docs/examples/java` and target Java 21. Paper examples live in `docs/examples/paper` and use the companion plugin's output and dependency classpath with Java 17 API/bytecode constraints. `checkPustkaExamples` runs both. The `checks.examples` entries in `pustka.docs.json` identify the published guide and heading for each complete Java block. The checker requires those blocks to match their checked source exactly. Update both together when an API changes.
 
 Run the compilation locally with `bash ./gradlew checkPustkaExamples`, or `gradlew.bat checkPustkaExamples` on Windows. After packaging from the pinned Site checkout, run:
 
@@ -95,3 +95,11 @@ node scripts/check-docs.mjs \
 ```
 
 Broken local links and Markdown heading anchors, missing API source files/lines, unresolved exported-symbol links, and drifted checked examples fail the documentation job. External HTTP(S) links are syntax-checked but not fetched. Missing authored API descriptions and parameter descriptions appear in the `relay-documentation-quality` artifact as a contributor report; they do not make all existing implementation APIs fail the build. Each missing description includes the symbol ID and exact source location so contributors can improve the relevant comment.
+
+## Declare stability deliberately
+
+The manifest's optional `api.stability` policy declares a default level and exact type rules with explanatory notes. Packaging applies a type rule to its nested types and members; the longest matching type wins. A rule does not match a similarly prefixed sibling. Unknown types and duplicate rules fail packaging. Without a policy, older packages keep their existing labels or remain unclassified.
+
+Relay defaults to `internal` and labels only the documented client/backend wire constant type families `supported`, with a narrow scope note. No Java ABI or proxy plugin API is promised. Read [API stability](api-stability.md) and [migration guidance](migration.md) before changing those rules. Any future experimental surface needs its own deliberate declaration rather than inheriting a blanket public-API claim.
+
+To render the same review artifact locally from a validated package, run the pinned Site toolchain's `node scripts/preview-docs.mjs --file /absolute/path/to/Relay/build/pustka-docs/package.json --out /absolute/path/to/new-preview-directory`. The destination must be new or empty. Open its `index.html`; the preview needs no running server or publication key.

@@ -28,8 +28,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: pustka-sh/Site
-          # Replaced with the reviewed Site commit before this workflow is merged.
-          ref: a3e18063e3714021dc4aab340222933ff5a4ff03
+          # Pin the documentation renderer, validator and preview generator together.
+          ref: f5e656f93894b88239f99d144bd0103b82ba632f
           path: site-toolchain
           persist-credentials: false
       - name: Install Java 21
@@ -81,6 +81,37 @@ jobs:
           path: relay/build/pustka-docs/quality.json
           if-no-files-found: ignore
           retention-days: 14
+      - name: Render the documentation review preview
+        run: >-
+          node site-toolchain/scripts/preview-docs.mjs
+          --file "$GITHUB_WORKSPACE/relay/build/pustka-docs/package.json"
+          --out "$GITHUB_WORKSPACE/relay/build/pustka-docs/preview"
+      - name: Save the rendered documentation preview
+        id: preview
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: relay-documentation-preview
+          path: relay/build/pustka-docs/preview
+          if-no-files-found: error
+          retention-days: 14
+      - name: Link the rendered draft in the job summary
+        env:
+          PREVIEW_ARTIFACT_URL: ${{ steps.preview.outputs.artifact-url }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFileSync, readFileSync } from 'node:fs';
+          import path from 'node:path';
+          const packagePath = path.join(process.env.GITHUB_WORKSPACE, 'relay/build/pustka-docs/package.json');
+          const data = JSON.parse(readFileSync(packagePath, 'utf8'));
+          const url = new URL(process.env.PREVIEW_ARTIFACT_URL);
+          if (url.protocol !== 'https:' || url.hostname !== 'github.com') throw new Error('Unexpected artifact URL.');
+          if (!/^[a-f0-9]{40}$/.test(data.source.commit)) throw new Error('Unexpected source commit.');
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            '### Documentation review draft\n\n' +
+            '[Download rendered HTML preview](' + url.href + ')\n\n' +
+            'Extract the artifact and open `index.html`. This draft is not published.\n\n' +
+            'Checked source commit: `' + data.source.commit + '`.\n');
+          NODE
       - name: Save the validated package
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
@@ -105,7 +136,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: pustka-sh/Site
-          ref: a3e18063e3714021dc4aab340222933ff5a4ff03
+          ref: f5e656f93894b88239f99d144bd0103b82ba632f
           path: site-toolchain
           persist-credentials: false
       - name: Install Node
