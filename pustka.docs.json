@@ -12,16 +12,30 @@
     {"path": "docs/protocol-ids.md", "slug": "protocol-ids", "title": "Protocol IDs"},
     {"path": "docs/server-packets.md", "slug": "server-packets", "title": "Server packets"},
     {"path": "docs/authoring-docs.md", "slug": "authoring", "title": "Writing documentation"},
-    {"path": "docs/java-examples.md", "slug": "java-examples", "title": "Checked Java examples"}
+    {"path": "docs/java-examples.md", "slug": "java-examples", "title": "Checked Java examples"},
+    {"path": "docs/integration-cookbook.md", "slug": "integration-cookbook", "title": "Integration cookbook"},
+    {"path": "docs/api-stability.md", "slug": "api-stability", "title": "API stability"},
+    {"path": "docs/migration.md", "slug": "migration", "title": "Migration guide"}
   ],
   "api": {
     "language": "java",
-    "artifact": "build/pustka-docs/api.json"
+    "artifact": "build/pustka-docs/api.json",
+    "stability": {
+      "default": "internal",
+      "rules": [
+        {"type": "dev.relay.api.ClientApi", "level": "supported", "note": "Supported only as the documented client wire protocol constants and limits. This does not promise a Java ABI or an in-process proxy plugin API; see API stability and the Client API guide."},
+        {"type": "dev.relay.api.backend.BackendApi", "level": "supported", "note": "Supported only as the documented backend plugin-message wire constants and limits. Implementation helpers remain internal; this does not promise Java binary compatibility. See API stability and the Backend API guide."}
+      ]
+    }
   },
   "checks": {
     "examples": [
       {"path": "docs/examples/java/dev/relay/docs/HandshakeExample.java", "guide": "docs/java-examples.md", "anchor": "encode-a-login-handshake"},
-      {"path": "docs/examples/java/dev/relay/docs/ForwardingExample.java", "guide": "docs/java-examples.md", "anchor": "verify-a-forwarding-signature"}
+      {"path": "docs/examples/java/dev/relay/docs/ForwardingExample.java", "guide": "docs/java-examples.md", "anchor": "verify-a-forwarding-signature"},
+      {"path": "docs/examples/paper/dev/relay/docs/TypedPacketExample.java", "guide": "docs/integration-cookbook.md", "anchor": "send-a-typed-packet"},
+      {"path": "docs/examples/paper/dev/relay/docs/QueryBackendExample.java", "guide": "docs/integration-cookbook.md", "anchor": "query-a-backend"},
+      {"path": "docs/examples/java/dev/relay/docs/ClientHelloExample.java", "guide": "docs/integration-cookbook.md", "anchor": "construct-a-client-handshake"},
+      {"path": "docs/examples/java/dev/relay/docs/FailureHandlingExample.java", "guide": "docs/integration-cookbook.md", "anchor": "handle-failed-requests"}
     ]
   }
 }

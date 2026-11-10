@@ -85,13 +85,28 @@ tasks.register<Exec>("generatePustkaDocs") {
     }
 }
 
-// Documentation examples compile against the current proxy API, never a copied
+// Documentation examples compile against the current project APIs, never copied
 // stub. Their complete source is also compared with the published Markdown by
 // the Site checker, so a guide cannot silently diverge from the checked example.
+val checkPustkaPaperExamples = tasks.register<JavaCompile>("checkPustkaPaperExamples") {
+    group = "documentation"
+    description = "Compiles Paper integration recipes with the plugin's real classpath"
+    dependsOn(":paper-plugin:classes")
+    source(fileTree("docs/examples/paper") { include("**/*.java") })
+    val paperSources = provider {
+        project(":paper-plugin").extensions.getByType<JavaPluginExtension>().sourceSets.getByName("main")
+    }
+    classpath = files(paperSources.map { it.output }, paperSources.map { it.compileClasspath })
+    destinationDirectory = layout.buildDirectory.dir("pustka-docs/paper-example-classes")
+    javaCompiler = docsJava.compilerFor { languageVersion = JavaLanguageVersion.of(21) }
+    options.release = 17
+    options.encoding = "UTF-8"
+}
+
 tasks.register<JavaCompile>("checkPustkaExamples") {
     group = "documentation"
     description = "Compiles the Java examples included in the published guides"
-    dependsOn(":proxy:classes")
+    dependsOn(":proxy:classes", checkPustkaPaperExamples)
     source(fileTree("docs/examples/java") { include("**/*.java") })
     val proxySources = provider {
         project(":proxy").extensions.getByType<JavaPluginExtension>().sourceSets.getByName("main")

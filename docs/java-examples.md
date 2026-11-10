@@ -2,6 +2,8 @@
 
 These complete examples compile against the current Relay proxy classes during the documentation build. Their published code blocks must exactly match the checked source files. A renamed method or a changed signature fails the documentation build before publication.
 
+For end-to-end integration building blocks, see the [integration cookbook](integration-cookbook.md). These source-level helpers remain [internal implementations](api-stability.md#internal-implementations), even though the protocol bytes they illustrate are documented.
+
 ## Encode a login handshake
 
 This builds the complete uncompressed frame for a sample Java 1.20.2 login handshake. The packet body uses Relay’s own `HandshakePacket` encoder; the example adds the packet ID and outer length prefix. It returns bytes without opening a connection.
