@@ -11,10 +11,17 @@
     {"path": "docs/client-api.md", "slug": "client-api", "title": "Client API"},
     {"path": "docs/protocol-ids.md", "slug": "protocol-ids", "title": "Protocol IDs"},
     {"path": "docs/server-packets.md", "slug": "server-packets", "title": "Server packets"},
-    {"path": "docs/authoring-docs.md", "slug": "authoring", "title": "Writing documentation"}
+    {"path": "docs/authoring-docs.md", "slug": "authoring", "title": "Writing documentation"},
+    {"path": "docs/java-examples.md", "slug": "java-examples", "title": "Checked Java examples"}
   ],
   "api": {
     "language": "java",
     "artifact": "build/pustka-docs/api.json"
+  },
+  "checks": {
+    "examples": [
+      {"path": "docs/examples/java/dev/relay/docs/HandshakeExample.java", "guide": "docs/java-examples.md", "anchor": "encode-a-login-handshake"},
+      {"path": "docs/examples/java/dev/relay/docs/ForwardingExample.java", "guide": "docs/java-examples.md", "anchor": "verify-a-forwarding-signature"}
+    ]
   }
 }

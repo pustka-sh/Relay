@@ -84,3 +84,21 @@ tasks.register<Exec>("generatePustkaDocs") {
         commandLine(javadocTool.get().executablePath.asFile.absolutePath, "@${argumentFile.absolutePath}")
     }
 }
+
+// Documentation examples compile against the current proxy API, never a copied
+// stub. Their complete source is also compared with the published Markdown by
+// the Site checker, so a guide cannot silently diverge from the checked example.
+tasks.register<JavaCompile>("checkPustkaExamples") {
+    group = "documentation"
+    description = "Compiles the Java examples included in the published guides"
+    dependsOn(":proxy:classes")
+    source(fileTree("docs/examples/java") { include("**/*.java") })
+    val proxySources = provider {
+        project(":proxy").extensions.getByType<JavaPluginExtension>().sourceSets.getByName("main")
+    }
+    classpath = files(proxySources.map { it.output }, proxySources.map { it.compileClasspath })
+    destinationDirectory = layout.buildDirectory.dir("pustka-docs/example-classes")
+    javaCompiler = docsJava.compilerFor { languageVersion = JavaLanguageVersion.of(21) }
+    options.release = 21
+    options.encoding = "UTF-8"
+}

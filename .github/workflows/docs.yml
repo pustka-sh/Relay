@@ -29,7 +29,7 @@ jobs:
         with:
           repository: pustka-sh/Site
           # Replaced with the reviewed Site commit before this workflow is merged.
-          ref: 9d9672bb40d832a0d30b548de0fcf59d8d3416fc
+          ref: a3e18063e3714021dc4aab340222933ff5a4ff03
           path: site-toolchain
           persist-credentials: false
       - name: Install Java 21
@@ -45,9 +45,9 @@ jobs:
       - name: Install pinned toolchain dependencies
         working-directory: site-toolchain
         run: npm ci --ignore-scripts
-      - name: Extract the real Relay API
+      - name: Extract the Relay API and compile documentation examples
         working-directory: relay
-        run: bash ./gradlew generatePustkaDocs "-PpustkaDocsToolchain=$GITHUB_WORKSPACE/site-toolchain" --console=plain --no-daemon
+        run: bash ./gradlew generatePustkaDocs checkPustkaExamples "-PpustkaDocsToolchain=$GITHUB_WORKSPACE/site-toolchain" --console=plain --no-daemon
       - name: Package and validate guides and API
         shell: bash
         run: |
@@ -67,6 +67,20 @@ jobs:
             '--version', version, '--commit', commit, '--ref', ref,
           ], {stdio: 'inherit'});
           NODE
+      - name: Check links, source targets and documented example contents
+        run: >-
+          node site-toolchain/scripts/check-docs.mjs --root "$GITHUB_WORKSPACE/relay"
+          --package "$GITHUB_WORKSPACE/relay/build/pustka-docs/package.json"
+          --manifest "$GITHUB_WORKSPACE/relay/pustka.docs.json"
+          --report "$GITHUB_WORKSPACE/relay/build/pustka-docs/quality.json"
+      - name: Save documentation quality report
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: relay-documentation-quality
+          path: relay/build/pustka-docs/quality.json
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Save the validated package
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
@@ -91,7 +105,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: pustka-sh/Site
-          ref: 9d9672bb40d832a0d30b548de0fcf59d8d3416fc
+          ref: a3e18063e3714021dc4aab340222933ff5a4ff03
           path: site-toolchain
           persist-credentials: false
       - name: Install Node
