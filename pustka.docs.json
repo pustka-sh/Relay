@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "id": "relay",
+    "name": "Relay",
+    "repository": "https://github.com/pustka-sh/Relay"
+  },
+  "guides": [
+    {"path": "README.md", "slug": "overview", "title": "Relay overview"},
+    {"path": "docs/backend-api.md", "slug": "backend-api", "title": "Backend API"},
+    {"path": "docs/client-api.md", "slug": "client-api", "title": "Client API"},
+    {"path": "docs/protocol-ids.md", "slug": "protocol-ids", "title": "Protocol IDs"},
+    {"path": "docs/server-packets.md", "slug": "server-packets", "title": "Server packets"},
+    {"path": "docs/authoring-docs.md", "slug": "authoring", "title": "Writing documentation"}
+  ],
+  "api": {
+    "language": "java",
+    "artifact": "build/pustka-docs/api.json"
+  }
+}
